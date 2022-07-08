@@ -16,13 +16,24 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+
+
+    strategy:
+      matrix:
+        pg-user: [postgres]
+        pg-password: [LOCALTESTINGxmhu5jVVwJ4sMlz7DAdKf0z4QPFY9Yc]
+        pg-db: [chocodb]
+        sqlx-version: [0.6.0]
+        sqlx-features: ["postgres rustls"]
+
     services:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: chocodb
+
+          POSTGRES_USER: ${{ matrix.pg-user }}
+          POSTGRES_PASSWORD: ${{ matrix.pg-password }}
+          POSTGRES_DB: ${{ matrix.pg-db }}
         ports:
           - 5432:5432
       redis:
@@ -30,9 +41,7 @@ jobs:
         ports:
           - 6379:6379
     env:
-      SQLX_VERSION: 0.6.0
-      SQLX_FEATURES: "postgres rustls"
-      DATABASE_URL: postgres://postgres:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/postgres
+      DATABASE_URL: postgres://${{ matrix.pg-user }}:${{ matrix.pg-password }}@localhost:5432/${{ matrix.pg-db }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -61,7 +70,7 @@ jobs:
           path: |
             ~/.cargo/bin/sqlx
             ~/.cargo/bin/cargo-sqlx
-          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}
+          key: ${{ runner.os }}-sqlx-${{ matrix.sqlx-version }}
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
@@ -71,8 +80,8 @@ jobs:
           args: >
             sqlx-cli
             --force
-            --version=${{ env.SQLX_VERSION }}
-            --features "${{ env.SQLX_FEATURES }}"
+            --version=${{ matrix.sqlx-version }}
+            --features "${{ matrix.sqlx-features }}"
             --no-default-features
             --locked
 
@@ -108,18 +117,25 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        pg-user: [postgres]
+        pg-password: [LOCALTESTINGxmhu5jVVwJ4sMlz7DAdKf0z4QPFY9Yc]
+        pg-db: [chocodb]
+        sqlx-version: [0.6.0]
+        sqlx-features: ["postgres rustls"]
+
     services:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: chocodb
+          POSTGRES_USER: ${{ matrix.pg-user }}
+          POSTGRES_PASSWORD: ${{ matrix.pg-password }}
+          POSTGRES_DB: ${{ matrix.pg-db }}
         ports:
           - 5432:5432
-    env:
-      SQLX_VERSION: 0.6.0
-      SQLX_FEATURES: "postgres rustls"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -137,7 +153,7 @@ jobs:
         with:
           path: |
             ~/.cargo/bin/sqlx
-          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}
+          key: ${{ runner.os }}-sqlx-${{ matrix.sqlx-version }}
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
@@ -147,8 +163,8 @@ jobs:
           args: >
             sqlx-cli
             --force
-            --version=${{ env.SQLX_VERSION }}
-            --features "${{ env.SQLX_FEATURES }}"
+            --version=${{ matrix.sqlx-version }}
+            --features "${{ matrix.sqlx-features }}"
             --no-default-features
             --locked
 
@@ -166,22 +182,25 @@ jobs:
   coverage:
     name: Code coverage
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        pg-user: [postgres]
+        pg-password: [LOCALTESTINGxmhu5jVVwJ4sMlz7DAdKf0z4QPFY9Yc]
+        pg-db: [chocodb]
+        sqlx-version: [0.6.0]
+        sqlx-features: ["postgres rustls"]
+
     services:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: chocodb
+          POSTGRES_USER: ${{ matrix.pg-user }}
+          POSTGRES_PASSWORD: ${{ matrix.pg-password }}
+          POSTGRES_DB: ${{ matrix.pg-db }}
         ports:
           - 5432:5432
-      redis:
-        image: redis:7
-        ports:
-          - 6379:6379
-    env:
-      SQLX_VERSION: 0.6.0
-      SQLX_FEATURES: "postgres rustls"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -198,7 +217,7 @@ jobs:
         with:
           path: |
             ~/.cargo/bin/sqlx
-          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}
+          key: ${{ runner.os }}-sqlx-${{ matrix.sqlx-version }}
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
@@ -208,8 +227,8 @@ jobs:
           args: >
             sqlx-cli
             --force
-            --version=${{ env.SQLX_VERSION }}
-            --features "${{ env.SQLX_FEATURES }}"
+            --version=${{ matrix.sqlx-version }}
+            --features "${{ matrix.sqlx-features }}"
             --no-default-features
             --locked
 
