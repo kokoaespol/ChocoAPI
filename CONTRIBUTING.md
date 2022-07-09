@@ -1,8 +1,7 @@
 # Contributing file
 
-Thanks you for contribute to this "little" project for our club at ESPOL. If you are
-interested on suggest new functionalities you can do this with an issue, all new 
-things are welcome!!.
+Thank you for contributing to this "little" project for our club at ESPOL. If you are
+interested on suggesting new features, you can do so with an issue. We welcome all suggestions!
 
 ### New Contributor guide
 
