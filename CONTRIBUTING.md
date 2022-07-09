@@ -35,7 +35,7 @@ Description:
 This is an incredible feature, this will help ....
 ```
 
-The **Title** need to show a resume or a name for the new change/fix/feature, this should not 
+The **Title** need to show a summary or a name for the new change/fix/feature, this should not 
 be too long.
 
 The **Description** you can show your reasons why/how/what are you making this pull request, if
