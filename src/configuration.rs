@@ -9,20 +9,20 @@ use std::{
     net::IpAddr,
 };
 
-#[derive(serde::Deserialize, Clone)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
 }
 
-#[derive(serde::Deserialize, Clone)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct ApplicationSettings {
     pub port: u16,
     pub host: IpAddr,
     pub base_url: String,
 }
 
-#[derive(serde::Deserialize, Clone)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct DatabaseSettings {
     pub username: String,
     pub password: SecretString,
@@ -90,6 +90,7 @@ pub fn extract() -> Result<Settings> {
 pub enum Environment {
     Local,
     Production,
+    Testing,
 }
 
 impl Environment {
@@ -98,6 +99,7 @@ impl Environment {
         match self {
             Environment::Local => "local",
             Environment::Production => "production",
+            Environment::Testing => "testing",
         }
     }
 }
@@ -109,6 +111,7 @@ impl TryFrom<String> for Environment {
         match s.to_lowercase().as_str() {
             "local" => Ok(Self::Local),
             "production" => Ok(Self::Production),
+            "testing" => Ok(Self::Testing),
             other => Err(eyre::eyre!(
                 "{other} is not a supported environment. Use either `local` or `production`"
             )),

@@ -43,6 +43,7 @@ tracing-subscriber = { version = "0.3.14", features = ["env-filter"] }
 uuid = { version = "1.1.2", features = ["v4", "serde"] }
 validator = { version = "0.15.0", features = ["derive"] }
 http-api-problem = { version = "0.53.0", features = ["hyper"] }
+async-recursion = "1.0.0"
 
 # Database client
 [dependencies.sqlx]
