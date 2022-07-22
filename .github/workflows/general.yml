@@ -68,6 +68,10 @@ jobs:
             --no-default-features
             --locked
 
+      - name: Create dummy .env file for docker-compose
+        run: |
+          touch .env
+
       - name: Run application in docker-compose
         env:
           APP_ENVIRONMENT: local
