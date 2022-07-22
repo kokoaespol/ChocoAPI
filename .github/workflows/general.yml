@@ -74,12 +74,11 @@ jobs:
 
       - name: Run application in docker-compose
         env:
-          APP_ENVIRONMENT: local
           POSTGRES_USER: ${{ matrix.pg-user }}
           POSTGRES_PASSWORD: ${{ matrix.pg-password }}
           POSTGRES_DB: ${{ matrix.pg-db }}
         run: |
-          docker-compose up --build
+          docker-compose up -d
 
       - name: Check sqlx-data.json is up-to-date
         env:
@@ -233,6 +232,8 @@ jobs:
           ./scripts/init_db.sh
 
       - name: Run cargo-tarpaulin
+        env:
+          APP_ENVIRONMENT: testing
         uses: actions-rs/tarpaulin@v0.1
         with:
           args: "--ignore-tests --avoid-cfg-tarpaulin"
