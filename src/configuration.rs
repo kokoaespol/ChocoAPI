@@ -113,7 +113,7 @@ impl TryFrom<String> for Environment {
             "production" => Ok(Self::Production),
             "testing" => Ok(Self::Testing),
             other => Err(eyre::eyre!(
-                "{other} is not a supported environment. Use either `local` or `production`"
+                "{other} is not a supported environment. Use either `local`, `production`, or `testing`"
             )),
         }
     }
