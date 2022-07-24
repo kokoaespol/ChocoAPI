@@ -25,6 +25,22 @@ jobs:
         sqlx-version: [0.6.0]
         sqlx-features: ["postgres rustls"]
 
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: ${{ matrix.pg-user }}
+          POSTGRES_PASSWORD: ${{ matrix.pg-password }}
+          POSTGRES_DB: ${{ matrix.pg-db }}
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    env:
+      DATABASE_URL: postgres://${{ matrix.pg-user }}:${{ matrix.pg-password }}@localhost:5432/${{ matrix.pg-db }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -68,22 +84,7 @@ jobs:
             --no-default-features
             --locked
 
-      - name: Create dummy .env file for docker-compose
-        run: |
-          touch .env
-
-      - name: Run application in docker-compose
-        env:
-          APP_ENVIRONMENT: local
-          POSTGRES_USER: ${{ matrix.pg-user }}
-          POSTGRES_PASSWORD: ${{ matrix.pg-password }}
-          POSTGRES_DB: ${{ matrix.pg-db }}
-        run: |
-          docker-compose up -d
-
       - name: Check sqlx-data.json is up-to-date
-        env:
-          DATABASE_URL: postgres://${{ matrix.pg-user }}:${{ matrix.pg-password }}@localhost:5432/${{ matrix.pg-db }}
         run: |
           cargo sqlx prepare --check -- --bin chocoapi
 
