@@ -1,5 +1,5 @@
 use eyre::{Result, WrapErr};
-use tracing::{subscriber::set_global_default, Level, Subscriber};
+use tracing::{subscriber, Level, Subscriber};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::{fmt::MakeWriter, layer::SubscriberExt, EnvFilter, Registry};
 
@@ -27,5 +27,5 @@ where
 ///
 /// It should only be called once!
 pub fn init_subscriber(subscriber: impl Subscriber + Sync + Send) -> Result<()> {
-    set_global_default(subscriber).wrap_err("failed to set subscriber")
+    subscriber::set_global_default(subscriber).wrap_err("failed to set subscriber")
 }

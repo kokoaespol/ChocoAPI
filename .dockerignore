@@ -3,4 +3,4 @@
 target/
 tests/
 Dockerfile
-scripts/init_db.sh
+scripts/

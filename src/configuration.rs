@@ -56,17 +56,10 @@ impl DatabaseSettings {
     }
 }
 
-pub fn extract() -> Result<Settings> {
+pub fn extract(environment: Environment) -> Result<Settings> {
     let base_path =
         std::env::current_dir().wrap_err("failed to determine the current directory")?;
     let configuration_directory = base_path.join("configuration");
-
-    // Detect the running environment.
-    // Default to `local` if unspecified.
-    let environment: Environment = std::env::var("APP_ENVIRONMENT")
-        .map_or(Ok(Environment::Local), |s| {
-            s.try_into().wrap_err("failed to parse APP_ENVIRONMENT.")
-        })?;
 
     // Initialise our configuration reader
     let settings = config::Config::builder()
@@ -86,11 +79,18 @@ pub fn extract() -> Result<Settings> {
         .wrap_err("failed to deserialize config files")
 }
 
+/// Detect the running environment.
+/// Default to `Environment::Local` if unspecified.
+pub fn get_environment() -> Result<Environment> {
+    std::env::var("APP_ENVIRONMENT").map_or(Ok(Environment::Local), |s| {
+        s.try_into().wrap_err("failed to parse APP_ENVIRONMENT")
+    })
+}
+
 /// The possible runtime environment for our application.
 pub enum Environment {
     Local,
     Production,
-    Testing,
 }
 
 impl Environment {
@@ -99,7 +99,6 @@ impl Environment {
         match self {
             Environment::Local => "local",
             Environment::Production => "production",
-            Environment::Testing => "testing",
         }
     }
 }
@@ -111,9 +110,8 @@ impl TryFrom<String> for Environment {
         match s.to_lowercase().as_str() {
             "local" => Ok(Self::Local),
             "production" => Ok(Self::Production),
-            "testing" => Ok(Self::Testing),
             other => Err(eyre::eyre!(
-                "{other} is not a supported environment. Use either `local`, `production`, or `testing`"
+                "{other} is not a supported environment. Use either `local` or `production`"
             )),
         }
     }
