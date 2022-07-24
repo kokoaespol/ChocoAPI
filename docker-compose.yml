@@ -3,8 +3,6 @@ services:
   chocoapi:
     build: .
     image: chocoapi:latest
-    expose:
-      - ${APP_APPLICATION__PORT:-8000}
     ports:
       - "${APP_APPLICATION__PORT:-8000}:8000"
     env_file: .env
@@ -14,24 +12,33 @@ services:
       - redis
       - postgres
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health_check:${APP_APPLICATION__PORT:-8000}"]
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:${APP_APPLICATION__PORT:-8000}/health_check",
+        ]
       interval: 2s
       timeout: 10s
       retries: 3
 
   redis:
-    image: redis:latest
+    image: redis:7
     ports:
-      # TODO: Unhardcode this
       - 6379:6379
-    expose:
-      - 6379
 
-  # TODO: We might wanna use volumes here to be able to persist the db state to the local disk.
   postgres:
-    image: postgres:latest
-    env_file: .env
+    image: postgres:14
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=chocodb
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-LOCALTESTINGxmhu5jVVwJ4sMlz7DAdKf0z4QPFY9Yc}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
-    expose:
-      - ${POSTGRES_PORT:-5432}
+      - 5432:5432
+    volumes:
+      - db:/var/lib/postgresql/data
+
+volumes:
+  db:
