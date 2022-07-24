@@ -27,6 +27,7 @@ base32 = "0.4.0"
 config = { version = "0.13.1", default-features = false, features = ["yaml"] }
 dotenv = "0.15.0"
 eyre = "0.6.8"
+http-api-problem = { version = "0.53.0", features = ["hyper"] }
 hyper = { version = "0.14.19", features = ["server"] }
 rand = { version = "0.8.5", features = ["min_const_gen"] }
 rand_chacha = "0.3.1"
@@ -42,8 +43,6 @@ tracing-bunyan-formatter = "0.3.3"
 tracing-subscriber = { version = "0.3.14", features = ["env-filter"] }
 uuid = { version = "1.1.2", features = ["v4", "serde"] }
 validator = { version = "0.15.0", features = ["derive"] }
-http-api-problem = { version = "0.53.0", features = ["hyper"] }
-async-recursion = "1.0.0"
 
 # Database client
 [dependencies.sqlx]

@@ -88,8 +88,6 @@ jobs:
           cargo sqlx prepare --check -- --bin chocoapi
 
       - name: Run cargo test
-        env:
-          APP_ENVIRONMENT: testing
         uses: actions-rs/cargo@v1
         with:
           command: test
@@ -163,11 +161,6 @@ jobs:
             --no-default-features
             --locked
 
-      - name: Migrate database
-        run: |
-          sudo apt-get install libpq-dev -y
-          ./scripts/init_db.sh
-
       - name: Run clippy
         uses: actions-rs/clippy-check@v1
         with:
@@ -227,14 +220,8 @@ jobs:
             --no-default-features
             --locked
 
-      - name: Migrate database
-        run: |
-          sudo apt-get install libpq-dev -y
-          ./scripts/init_db.sh
-
       - name: Run cargo-tarpaulin
         env:
-          APP_ENVIRONMENT: testing
         uses: actions-rs/tarpaulin@v0.1
         with:
           args: "--ignore-tests --avoid-cfg-tarpaulin"

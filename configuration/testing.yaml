@@ -1,7 +1,0 @@
-application:
-  host: "127.0.0.1"
-  base_url: "http://127.0.0.1"
-database:
-  host: "127.0.0.1"
-  password: "LOCALTESTINGxmhu5jVVwJ4sMlz7DAdKf0z4QPFY9Yc"
-  require_ssl: false

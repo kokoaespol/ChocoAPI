@@ -2,7 +2,6 @@ use crate::{
     configuration::{DatabaseSettings, Settings},
     routes::health_check,
 };
-use async_recursion::async_recursion;
 use axum::{
     routing::{get, IntoMakeService},
     Extension, Router, Server,
@@ -14,7 +13,7 @@ use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 
 pub struct Application {
-    port: u16,
+    local_address: SocketAddr,
     server: Server<AddrIncoming, IntoMakeService<Router>>,
 }
 
@@ -35,28 +34,30 @@ impl Application {
 
         let server = axum::Server::bind(&address).serve(app.into_make_service());
 
-        let port = server.local_addr().port();
+        let local_address = server.local_addr();
 
-        Ok(Application { port, server })
+        Ok(Application {
+            local_address,
+            server,
+        })
     }
 
     pub async fn run_until_stopped(self) -> Result<()> {
         self.server.await.wrap_err("error running HTTP server")
     }
 
-    pub fn port(&self) -> u16 {
-        self.port
+    pub fn local_address(&self) -> SocketAddr {
+        self.local_address
     }
 }
 
 pub async fn get_connection_pool(configuration: &DatabaseSettings) -> Result<PgPool> {
-    // If rust had an Alternative typeclass I could just "choose" between the different
-    #[async_recursion]
-    async fn try_connect(
-        configuration: &DatabaseSettings,
-        retries: i32,
-        max_retries: i32,
-    ) -> Result<PgPool> {
+    // TODO: Add max_retries to the configuration file.
+    const MAX_RETRIES: i32 = 5;
+
+    let mut retries = 0;
+
+    loop {
         match PgPoolOptions::new()
             .acquire_timeout(std::time::Duration::from_secs(2))
             // The default connection limit for a Postgres server is 100 connections, minus 3 for superusers.
@@ -69,17 +70,17 @@ pub async fn get_connection_pool(configuration: &DatabaseSettings) -> Result<PgP
             .await
             .wrap_err("error starting Postgres db")
         {
-            pool @ Ok(_) => pool,
-            Err(_) if retries < max_retries => {
-                try_connect(configuration, retries + 1, max_retries).await
+            Ok(pool) => break Ok(pool),
+            Err(e) => {
+                if retries < MAX_RETRIES {
+                    tracing::warn!("retrying db connection");
+                    retries += 1;
+                } else {
+                    break Err(e);
+                }
             }
-            err @ Err(_) => err,
         }
     }
-
-    // TODO: Add max_retries to the configuration file.
-    let max_retries = 5;
-    try_connect(configuration, 0, max_retries).await
 }
 
 // TODO: only `merge` here and delegate to routes folder
