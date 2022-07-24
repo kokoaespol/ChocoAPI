@@ -221,7 +221,6 @@ jobs:
             --locked
 
       - name: Run cargo-tarpaulin
-        env:
         uses: actions-rs/tarpaulin@v0.1
         with:
           args: "--ignore-tests --avoid-cfg-tarpaulin"
