@@ -9,8 +9,6 @@ RUN cargo chef prepare  --recipe-path recipe.json
 
 FROM chef as builder
 COPY --from=planner /app/recipe.json recipe.json
-# This is needed because sqlx checks the database at compile time
-COPY migrations migrations
 # Build our project dependencies, not our application!
 RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
@@ -27,6 +25,7 @@ RUN apt-get update -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/target/release/chocoapi chocoapi
+# This is needed because sqlx checks the database at compile time
 COPY --from=builder /app/migrations migrations
 COPY configuration configuration
 ENV APP_ENVIRONMENT production
