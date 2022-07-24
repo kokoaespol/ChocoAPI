@@ -57,3 +57,7 @@ Postgres must be running before running `cargo test`. For example
 docker compose up -d postgres
 cargo test
 ```
+
+## Minimum supported Rust version
+
+ChocoAPI's MSRV is 1.62.
