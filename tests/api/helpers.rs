@@ -1,9 +1,12 @@
-use chocoapi::configuration::{self, DatabaseSettings};
-use chocoapi::startup::{get_connection_pool, Application};
-use chocoapi::telemetry::{get_subscriber, init_subscriber};
 use once_cell::sync::Lazy;
-use sqlx::{Connection, Executor, PgConnection, PgPool};
-use uuid::Uuid;
+
+use chocoapi::configuration;
+use chocoapi::startup::Application;
+use chocoapi::telemetry::{get_subscriber, init_subscriber};
+
+use crate::wrappers::{TestAPI, TestConfiguration};
+
+use super::services::TestDatabase;
 
 // Ensure that the `tracing` stack is only initialised once using `once_cell`
 static TRACING: Lazy<()> = Lazy::new(|| {
@@ -18,77 +21,58 @@ static TRACING: Lazy<()> = Lazy::new(|| {
     };
 });
 
+/// Each test has its own instance of TestApp.
 pub struct TestApp {
+    /// The API address.
     pub address: String,
+    /// The API port.
     pub port: u16,
-    pub db_pool: PgPool,
+    /// The database to use in tests.
+    pub db: TestDatabase,
+    /// An http client to be used to hit the API during tests.
     pub api_client: reqwest::Client,
 }
 
-pub async fn spawn_app() -> TestApp {
-    Lazy::force(&TRACING);
+impl TestApp {
+    pub async fn new() -> Self {
+        Lazy::force(&TRACING);
 
-    // Randomise configuration to ensure test isolation
-    let configuration = {
-        let environment = configuration::get_environment().expect("failed to get environment");
-        let mut c = configuration::extract(environment).expect("Failed to read configuration.");
-        // Use a different database for each test case
-        c.database.database_name = Uuid::new_v4().to_string();
-        // Change host because we are not in docker
-        c.database.host = "localhost".to_string();
-        // Use a random OS port
-        c.application.port = 0;
-        c
-    };
+        // Randomise configuration to ensure test isolation
+        let configuration = {
+            let environment = configuration::get_environment().expect("failed to get environment");
+            let c = configuration::extract(environment).expect("Failed to read configuration.");
+            TestConfiguration::new(c)
+        };
 
-    // Create and migrate the database
-    configure_database(&configuration.database).await;
+        // Create the test database
+        let db = TestDatabase::new(&configuration).await;
 
-    // Launch the application as a background task
-    let application = Application::build(configuration.clone())
-        .await
-        .expect("Failed to build application.");
+        // Launch the application as a background task
+        let (address, port) = {
+            let application = TestAPI::new(configuration).await;
 
-    let local_address = application.local_address();
+            let local_address = application.local_address();
 
-    let _ = tokio::spawn(application.run_until_stopped());
+            let application: Application = application.into();
+            let _ = tokio::spawn(application.run_until_stopped());
 
-    let client = reqwest::Client::builder()
-        .redirect(reqwest::redirect::Policy::none())
-        .cookie_store(true)
-        .build()
-        .unwrap();
+            (
+                format!("http://{}:{}", local_address.ip(), local_address.port()),
+                local_address.port(),
+            )
+        };
 
-    let test_app = TestApp {
-        address: format!("http://{}:{}", local_address.ip(), local_address.port()),
-        port: local_address.port(),
-        db_pool: get_connection_pool(&configuration.database)
-            .await
-            .expect("failed to get connection"),
-        api_client: client,
-    };
+        let api_client = reqwest::Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .cookie_store(true)
+            .build()
+            .unwrap();
 
-    test_app
-}
-
-async fn configure_database(config: &DatabaseSettings) -> PgPool {
-    // Create database
-    let mut connection = PgConnection::connect_with(&config.without_db())
-        .await
-        .expect("failed to connect to Postgres");
-    connection
-        .execute(&*format!(r#"CREATE DATABASE "{}";"#, config.database_name))
-        .await
-        .expect("failed to create database");
-
-    // Migrate database
-    let connection_pool = PgPool::connect_with(config.with_db())
-        .await
-        .expect("failed to connect to Postgres");
-    sqlx::migrate!("./migrations")
-        .run(&connection_pool)
-        .await
-        .expect("failed to migrate the database");
-
-    connection_pool
+        TestApp {
+            address,
+            port,
+            db,
+            api_client,
+        }
+    }
 }
