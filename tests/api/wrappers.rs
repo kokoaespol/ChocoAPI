@@ -37,9 +37,8 @@ pub struct TestConfiguration(Settings);
 
 impl TestConfiguration {
     pub fn new(mut config: Settings) -> Self {
-        // Use a random OS port
         config.application.port = 0;
-        // Use a different database for each test case
+        config.database.host = "localhost".to_string();
         config.database.database_name = Uuid::new_v4().to_string();
         TestConfiguration(config)
     }
