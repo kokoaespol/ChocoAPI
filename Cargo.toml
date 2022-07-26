@@ -17,8 +17,8 @@ name = "chocoapi"
 
 [dependencies]
 # Core dependencies: runtime and HTTP framework
-axum = { version = "0.5.11", features = ["headers"] }
-tokio = { version = "1.19.2", features = ["rt-multi-thread", "macros"] }
+axum = { version = "0.5.14", features = ["headers"] }
+tokio = { version = "1.20.1", features = ["rt-multi-thread", "macros"] }
 
 # State of the art password hashing.
 argon2 = { version = "0.4.1", features = ["zeroize"] }
@@ -29,11 +29,11 @@ config = { version = "0.13.1", default-features = false, features = ["yaml"] }
 dotenv = "0.15.0"
 eyre = "0.6.8"
 http-api-problem = { version = "0.53.0", features = ["hyper"] }
-hyper = { version = "0.14.19", features = ["server"] }
+hyper = { version = "0.14.20", features = ["server"] }
 rand = { version = "0.8.5", features = ["min_const_gen"] }
 rand_chacha = "0.3.1"
 secrecy = { version = "0.8.0", features = ["serde"] }
-serde = { version = "1.0.138", features = ["derive"] }
+serde = { version = "1.0.140", features = ["derive"] }
 serde_json = "1.0.82"
 stringprep = "0.1.2"
 thiserror = "1.0.31"
@@ -41,9 +41,9 @@ time = { version = "0.3.11", features = ["serde-human-readable"] }
 tower-http = { version = "0.3.4", features = ["trace"] }
 tracing = "0.1.35"
 tracing-bunyan-formatter = "0.3.3"
-tracing-subscriber = { version = "0.3.14", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.15", features = ["env-filter"] }
 uuid = { version = "1.1.2", features = ["v4", "serde"] }
-validator = { version = "0.15.0", features = ["derive"] }
+validator = { version = "0.16.0", features = ["derive"] }
 
 # Database client
 [dependencies.sqlx]
@@ -60,7 +60,7 @@ features = [
 ]
 
 [dev-dependencies]
-once_cell = "1.12.1"
+once_cell = "1.13.0"
 reqwest = { version = "0.11.11", default-features = false, features = [
     "json",
     "rustls-tls",
