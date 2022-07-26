@@ -68,7 +68,7 @@ pub fn extract(environment: Environment) -> Result<Settings> {
             config::File::from(configuration_directory.join(environment.as_str())).required(true),
         )
         // Add in settings from environment variables (with a prefix of APP and '__' as separator)
-        // E.g. `APP_APPLICATION__PORT=5001 would set `Settings.application.port`
+        // E.g. `APP__DATABASE__PORT=5432 would set `Settings.database.port`
         .add_source(config::Environment::with_prefix("app").separator("__"))
         .build()?;
 
@@ -88,6 +88,7 @@ pub fn get_environment() -> Result<Environment> {
 }
 
 /// The possible runtime environment for our application.
+#[derive(Debug, Clone, Copy)]
 pub enum Environment {
     Local,
     Production,
