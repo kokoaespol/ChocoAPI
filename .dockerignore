@@ -1,5 +1,7 @@
 .env
+.env.sample
 .dockerignore
+docker-compose.yml
 target/
 tests/
 Dockerfile

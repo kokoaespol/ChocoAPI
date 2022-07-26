@@ -13,8 +13,6 @@ API/Backend for projects of Kokoa club
 
 ## Environment setup
 
-The docker compose services expect the `APP_ENVIRONMENT` variable to be set.
-
 Currently app configuration is done through the configuration files in the
 `/configuration` directory and can be overwritten locally with an `.env` file.
 Copy the `.env.sample` file removing the `.sample` extension and modify as needed.
@@ -24,7 +22,15 @@ modified or deleted.
 
 ## Running
 
-The application can be run using docker compose:
+Postgres must be listening before running `cargo run`. For example
+
+```sh
+docker compose up -d postgres
+cargo run
+```
+
+The application can also be run using docker compose, this emulates
+a production environment.
 
 ```sh
 docker compose up
@@ -47,11 +53,12 @@ docker compose down
 ```
 
 Environment variables can be specified in an `.env` file (if it is declared in
-the service configuration in the `docker compose.yml` file)
+the service configuration in the `docker compose.yml` file).
+The docker compose services expect the `APP__DATABASE__PASSWORD` variable to be set.
 
 ## Testing
 
-Postgres must be running before running `cargo test`. For example
+Postgres must be listening before running `cargo test`. For example
 
 ```sh
 docker compose up -d postgres
