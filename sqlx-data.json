@@ -1,3 +1,143 @@
 {
-  "db": "PostgreSQL"
+  "db": "PostgreSQL",
+  "2310e1d582709d82e79656b4de115d61b0858464a085de04806c33b00d1eeba7": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "full_name",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "profile_pic_id",
+          "ordinal": 3,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_id",
+          "ordinal": 4,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "passwd_hash",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "active",
+          "ordinal": 6,
+          "type_info": "Bool"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 7,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 8,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Uuid",
+          "Uuid",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO users (username, full_name, profile_pic_id, email_id, passwd_hash)\n            VALUES ($1, $2, $3, $4, $5)\n            RETURNING *\n            "
+  },
+  "843923b9a0257cf80f1dff554e7dc8fdfc05f489328e8376513124dfb42996e3": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "full_name",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "profile_pic_id",
+          "ordinal": 3,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_id",
+          "ordinal": 4,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "passwd_hash",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "active",
+          "ordinal": 6,
+          "type_info": "Bool"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 7,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 8,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "SELECT * FROM users WHERE id = $1"
+  }
 }
