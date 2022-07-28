@@ -1,6 +1,4 @@
-use eyre::Context;
 use sqlx::postgres::PgPool;
-use uuid::Uuid;
 
 use crate::{
     erro::AppError,
@@ -37,12 +35,12 @@ impl UserRepository {
         .map_err(AppError::Sqlx)
     }
 
-    /// Get a single `User` by its id.
-    pub async fn get_by_id(&self, id: Uuid) -> Option<User> {
-        sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", id)
-            .fetch_optional(&self.0)
-            .await
-            .wrap_err("failed to fetch user from database")
-            .unwrap()
-    }
+    // /// Get a single `User` by its id.
+    // pub async fn get_by_id(&self, id: Uuid) -> Option<User> {
+    //     sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", id)
+    //         .fetch_optional(&self.0)
+    //         .await
+    //         .wrap_err("failed to fetch user from database")
+    //         .unwrap()
+    // }
 }

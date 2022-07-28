@@ -4,7 +4,7 @@ use tracing::warn;
 
 use crate::{
     erro::AppError,
-    models::InsertableUserBuilder,
+    models::{InsertableUserBuilder, User},
     repositories::{EmailRepository, ImageRepository, UserRepository},
 };
 
@@ -14,7 +14,7 @@ pub async fn register(
     Extension(user_repository): Extension<UserRepository>,
     Extension(email_repository): Extension<EmailRepository>,
     Extension(image_repository): Extension<ImageRepository>,
-) -> Result<StatusCode, AppError> {
+) -> Result<(StatusCode, User), AppError> {
     let mut builder = InsertableUserBuilder::new();
 
     while let Some(field) = body
@@ -73,10 +73,10 @@ pub async fn register(
     // TODO: send confirmation email
 
     if let Some(insertable_user) = builder.build() {
-        // TODO: Return this in the response body
-        user_repository.create_user(insertable_user).await?;
-        Ok(StatusCode::CREATED)
+        // TODO: We might want to return CONFLICT here (though it might pose a security risk).
+        let user = user_repository.create_user(insertable_user).await?;
+        Ok((StatusCode::CREATED, user))
     } else {
-        Ok(StatusCode::BAD_REQUEST)
+        Err(AppError::UnprocessableEntity)
     }
 }

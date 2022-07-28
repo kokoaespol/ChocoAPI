@@ -1,7 +1,10 @@
+use axum::response::{IntoResponse, Response};
+use serde::Serialize;
 use time::OffsetDateTime;
 use uuid::Uuid;
 
 /// A domain user.
+#[derive(Serialize)]
 pub struct User {
     pub id: Uuid,
     pub username: String,
@@ -12,6 +15,12 @@ pub struct User {
     pub active: bool,
     pub created_at: OffsetDateTime,
     pub updated_at: OffsetDateTime,
+}
+
+impl IntoResponse for User {
+    fn into_response(self) -> Response {
+        serde_json::to_string(&self).unwrap().into_response()
+    }
 }
 
 /// Represents a user to be inserted in the database.

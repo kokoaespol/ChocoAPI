@@ -28,11 +28,10 @@ pub enum AppError {
     // /// Return `404 Not Found`
     // #[error("request path not found")]
     // NotFound,
+    /// Return `422 Unprocessable Entity`
+    #[error("error in the request body")]
+    UnprocessableEntity,
 
-    // /// Return `422 Unprocessable Entity`
-    // #[error("error in the request body")]
-    // UnprocessableEntity,
-    //
     /// Automatically return `500 Internal Server Error` on a `sqlx::Error`.
     ///
     /// Via the generated `From<sqlx::Error> for Error` impl,
@@ -70,7 +69,7 @@ impl AppError {
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
             // Self::Forbidden => StatusCode::FORBIDDEN,
             // Self::NotFound => StatusCode::NOT_FOUND,
-            // Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Sqlx(_) | Self::Eyre(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -97,8 +96,7 @@ impl IntoResponse for AppError {
                 return hyper_response.into_response();
             }
             // add errors to response
-            // AppError::UnprocessableEntity
-            //
+            AppError::UnprocessableEntity => (),
             AppError::Sqlx(ref error) => {
                 tracing::error!(?error, "SQLx error");
             }
