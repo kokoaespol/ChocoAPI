@@ -44,6 +44,7 @@ tracing-bunyan-formatter = "0.3.3"
 tracing-subscriber = { version = "0.3.15", features = ["env-filter"] }
 uuid = { version = "1.1.2", features = ["v4", "serde"] }
 validator = { version = "0.16.0", features = ["derive"] }
+image = "0.24.3"
 
 # Database client
 [dependencies.sqlx]

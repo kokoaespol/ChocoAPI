@@ -1,5 +1,5 @@
 use axum::{extract::Multipart, http::StatusCode, Extension};
-use eyre::Context;
+use eyre::{Context, ContextCompat};
 use tracing::warn;
 
 use crate::{
@@ -8,6 +8,7 @@ use crate::{
     repositories::{EmailRepository, ImageRepository, UserRepository},
 };
 
+/// Register a user.
 pub async fn register(
     mut body: Multipart,
     Extension(user_repository): Extension<UserRepository>,
@@ -52,13 +53,19 @@ pub async fn register(
                     builder = builder.with_email_id(email_repository.create_email(email).await?);
                 }
                 "profile_pic" => {
-                    let _image = field.bytes().await.wrap_err("failed to parse form image")?;
-                    builder = builder.with_profile_pic_id(image_repository.create_image());
+                    let mime_type = field
+                        .content_type()
+                        .wrap_err("failed to fetch image content type")?
+                        .to_string();
+                    let image = field.bytes().await.wrap_err("failed to parse form image")?;
+                    builder = builder.with_profile_pic_id(
+                        image_repository
+                            .create_image(&mime_type, image.to_vec())
+                            .await?,
+                    );
                 }
-                name => warn!("invalid field name in registration form {}", name),
+                _ => warn!("invalid field name in registration form: {}", field_name),
             }
-        } else {
-            warn!("field is missing value in form data");
         }
     }
 
@@ -67,7 +74,7 @@ pub async fn register(
 
     if let Some(insertable_user) = builder.build() {
         // TODO: Return this in the response body
-        let _user = user_repository.create_user(insertable_user).await?;
+        user_repository.create_user(insertable_user).await?;
         Ok(StatusCode::CREATED)
     } else {
         Ok(StatusCode::BAD_REQUEST)
