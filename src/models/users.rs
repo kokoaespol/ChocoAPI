@@ -1,10 +1,10 @@
 use axum::response::{IntoResponse, Response};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
 /// A domain user.
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct User {
     pub id: Uuid,
     pub username: String,
@@ -33,22 +33,27 @@ pub struct InsertableUser {
 }
 
 impl InsertableUser {
+    #[must_use]
     pub fn username(&self) -> String {
         self.username.clone()
     }
 
+    #[must_use]
     pub fn full_name(&self) -> Option<String> {
         self.full_name.clone()
     }
 
+    #[must_use]
     pub fn profile_pic_id(&self) -> Option<Uuid> {
         self.profile_pic_id
     }
 
+    #[must_use]
     pub fn email_id(&self) -> Uuid {
         self.email_id
     }
 
+    #[must_use]
     pub fn passwd_hash(&self) -> String {
         self.passwd_hash.clone()
     }
@@ -64,6 +69,7 @@ pub struct InsertableUserBuilder {
 }
 
 impl InsertableUserBuilder {
+    #[must_use]
     pub fn new() -> Self {
         InsertableUserBuilder {
             username: String::default(),
@@ -74,32 +80,38 @@ impl InsertableUserBuilder {
         }
     }
 
+    #[must_use]
     pub fn with_username(mut self, username: String) -> Self {
         self.username = username;
         self
     }
 
+    #[must_use]
     pub fn with_full_name(mut self, full_name: String) -> Self {
         self.full_name = Some(full_name);
         self
     }
 
+    #[must_use]
     pub fn with_password(mut self, passwd: String) -> Self {
         // TODO: hash password
         self.passwd_hash = passwd;
         self
     }
 
+    #[must_use]
     pub fn with_email_id(mut self, email_id: Uuid) -> Self {
         self.email_id = email_id;
         self
     }
 
+    #[must_use]
     pub fn with_profile_pic_id(mut self, profile_pic_id: Uuid) -> Self {
         self.profile_pic_id = profile_pic_id.into();
         self
     }
 
+    #[must_use]
     pub fn build(self) -> Option<InsertableUser> {
         if self.username.is_empty()
             || self.passwd_hash.is_empty()
@@ -116,5 +128,12 @@ impl InsertableUserBuilder {
             }
             .into()
         }
+    }
+}
+
+// Clippy me obligó a hacer esto
+impl Default for InsertableUserBuilder {
+    fn default() -> Self {
+        Self::new()
     }
 }
