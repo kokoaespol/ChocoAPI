@@ -14,6 +14,7 @@ pub struct User {
     pub updated_at: OffsetDateTime,
 }
 
+/// Represents a user to be inserted in the database.
 pub struct InsertableUser {
     username: String,
     full_name: Option<String>,
@@ -44,6 +45,7 @@ impl InsertableUser {
     }
 }
 
+/// Build a new `InsertableUser`.
 pub struct InsertableUserBuilder {
     username: String,
     full_name: Option<String>,

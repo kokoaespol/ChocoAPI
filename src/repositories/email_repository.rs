@@ -1,6 +1,8 @@
 use sqlx::postgres::PgPool;
 use uuid::Uuid;
 
+use crate::erro::AppError;
+
 #[derive(Clone)]
 pub struct EmailRepository(PgPool);
 
@@ -10,7 +12,18 @@ impl EmailRepository {
     }
 
     /// Create a new email in the database.
-    pub fn create_email(&self) -> Uuid {
-        todo!("not implemented")
+    pub async fn create_email(&self, email: String) -> Result<Uuid, AppError> {
+        sqlx::query!(
+            r#"
+            INSERT INTO emails (email)
+            VALUES ($1)
+            RETURNING id
+            "#,
+            email
+        )
+        .fetch_one(&self.0)
+        .await
+        .map(|record| record.id)
+        .map_err(AppError::Sqlx)
     }
 }

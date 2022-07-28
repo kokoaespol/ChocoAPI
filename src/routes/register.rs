@@ -48,8 +48,8 @@ pub async fn register(
                     );
                 }
                 "email" => {
-                    let _email = field.text().await.wrap_err("failed to parse form email")?;
-                    builder = builder.with_email_id(email_repository.create_email());
+                    let email = field.text().await.wrap_err("failed to parse form email")?;
+                    builder = builder.with_email_id(email_repository.create_email(email).await?);
                 }
                 "profile_pic" => {
                     let _image = field.bytes().await.wrap_err("failed to parse form image")?;
@@ -62,7 +62,11 @@ pub async fn register(
         }
     }
 
+    // TODO: insert permissions for new user
+    // TODO: send confirmation email
+
     if let Some(insertable_user) = builder.build() {
+        // TODO: Return this in the response body
         let _user = user_repository.create_user(insertable_user).await?;
         Ok(StatusCode::CREATED)
     } else {
