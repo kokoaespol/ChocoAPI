@@ -1,10 +1,10 @@
 use axum::{extract::Multipart, http::StatusCode, Extension};
 use eyre::Context;
 use tracing::warn;
-use uuid::Uuid;
 
 use crate::{
     erro::AppError,
+    models::InsertableUserBuilder,
     repositories::{EmailRepository, ImageRepository, UserRepository},
 };
 
@@ -14,11 +14,7 @@ pub async fn register(
     Extension(email_repository): Extension<EmailRepository>,
     Extension(image_repository): Extension<ImageRepository>,
 ) -> Result<StatusCode, AppError> {
-    let mut username: String = Default::default();
-    let mut password: String = Default::default();
-    let mut full_name: Option<String> = None;
-    let mut profile_pic_id: Option<Uuid> = None;
-    let mut email_id: Uuid = Default::default();
+    let mut builder = InsertableUserBuilder::new();
 
     while let Some(field) = body
         .next_field()
@@ -26,22 +22,25 @@ pub async fn register(
         .wrap_err("failed to parse multipart form data")?
     {
         if let Some(field_name) = field.name() {
-            // TODO: simplify this with a macro
             match field_name {
                 "username" => {
-                    username = field
-                        .text()
-                        .await
-                        .wrap_err("failed to parse form username")?;
+                    builder = builder.with_username(
+                        field
+                            .text()
+                            .await
+                            .wrap_err("failed to parse form username")?,
+                    );
                 }
                 "password" => {
-                    password = field
-                        .text()
-                        .await
-                        .wrap_err("failed to parse form password")?;
+                    builder = builder.with_password(
+                        field
+                            .text()
+                            .await
+                            .wrap_err("failed to parse form password")?,
+                    );
                 }
                 "full_name" => {
-                    full_name = Some(
+                    builder = builder.with_full_name(
                         field
                             .text()
                             .await
@@ -49,12 +48,12 @@ pub async fn register(
                     );
                 }
                 "email" => {
-                    let email = field.text().await.wrap_err("failed to parse form email")?;
-                    email_id = email_repository.create_email();
+                    let _email = field.text().await.wrap_err("failed to parse form email")?;
+                    builder = builder.with_email_id(email_repository.create_email());
                 }
                 "profile_pic" => {
-                    let image = field.bytes().await.wrap_err("failed to parse form image")?;
-                    profile_pic_id = Some(image_repository.create_image());
+                    let _image = field.bytes().await.wrap_err("failed to parse form image")?;
+                    builder = builder.with_profile_pic_id(image_repository.create_image());
                 }
                 name => warn!("invalid field name in registration form {}", name),
             }
@@ -63,13 +62,10 @@ pub async fn register(
         }
     }
 
-    if username != "" || password != "" || email_id == Uuid::default() {
-        return Ok(StatusCode::BAD_REQUEST);
+    if let Some(insertable_user) = builder.build() {
+        let _user = user_repository.create_user(insertable_user).await?;
+        Ok(StatusCode::CREATED)
+    } else {
+        Ok(StatusCode::BAD_REQUEST)
     }
-
-    let _user = user_repository
-        .create_user(username, password, full_name, profile_pic_id, email_id)
-        .await?;
-
-    Ok(StatusCode::CREATED)
 }

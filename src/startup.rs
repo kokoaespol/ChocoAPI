@@ -92,6 +92,6 @@ fn app(db_pool: PgPool) -> Router {
         .route("/register", post(register))
         .layer(Extension(UserRepository::new(db_pool.clone())))
         .layer(Extension(ImageRepository::new(db_pool.clone())))
-        .layer(Extension(EmailRepository::new(db_pool.clone())))
+        .layer(Extension(EmailRepository::new(db_pool)))
         .layer(TraceLayer::new_for_http())
 }
