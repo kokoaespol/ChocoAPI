@@ -7,7 +7,7 @@ use eyre::{Context, ContextCompat};
 use tracing::warn;
 
 use crate::{
-    erro::AppError,
+    erro::{AppError, ErrorMap},
     models::{InsertableUserBuilder, User},
     repositories::{EmailRepository, ImageRepository, UserRepository},
 };
@@ -20,6 +20,7 @@ pub async fn register(
     Extension(image_repository): Extension<ImageRepository>,
 ) -> Result<(StatusCode, Json<User>), AppError> {
     let mut builder = InsertableUserBuilder::new();
+    let mut errors = ErrorMap::<String, String>::new();
 
     while let Some(field) = body
         .next_field()
@@ -68,7 +69,10 @@ pub async fn register(
                             .await?,
                     );
                 }
-                _ => warn!("invalid field name in registration form: {}", field_name),
+                _ => {
+                    errors.add_error(field_name.to_string(), "Invalid field".to_string());
+                    warn!("invalid field name in registration form: {}", field_name);
+                }
             }
         }
     }
@@ -76,11 +80,14 @@ pub async fn register(
     // TODO: insert permissions for new user
     // TODO: send confirmation email
 
-    if let Some(insertable_user) = builder.build() {
-        // TODO: We might want to return CONFLICT here (though it might pose a security risk).
-        let user = user_repository.create_user(insertable_user).await?;
-        Ok((StatusCode::CREATED, user.into()))
-    } else {
-        Err(AppError::UnprocessableEntity)
+    match builder.build() {
+        Ok(insertable_user) => {
+            let user = user_repository.create_user(insertable_user).await?;
+            Ok((StatusCode::CREATED, Json(user)))
+        }
+        Err(errs) => {
+            errors.merge(errs);
+            Err(AppError::UnprocessableEntity(errors))
+        }
     }
 }

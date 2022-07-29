@@ -1,8 +1,9 @@
+use http_api_problem::StatusCode;
 use reqwest::multipart;
 
-use crate::helpers::TestApp;
-
 use chocoapi::models::User;
+
+use crate::helpers::TestApp;
 
 #[tokio::test]
 async fn hitting_register_with_valid_data_returns_created_and_new_user_as_json() {
@@ -37,4 +38,30 @@ async fn hitting_register_with_valid_data_returns_created_and_new_user_as_json()
 
     // TODO: check that the user is persisted to the database and
     // that their email is not confirmed
+}
+
+#[tokio::test]
+async fn hitting_register_endpoint_with_missing_username_returns_unprocessable_entity() {
+    // Arrange
+    let app = TestApp::new().await;
+    let client = reqwest::Client::new();
+    let form_data = multipart::Form::new()
+        .text("password", "12345")
+        .text("email", "john@doe.com");
+
+    // Act
+    let response = client
+        .post(&format!("{}/register", &app.address))
+        .multipart(form_data)
+        .send()
+        .await
+        .expect("failed to execute request");
+
+    let response_status = response.status();
+    let created_user: Result<User, _> = response.json().await;
+
+    // Assert
+    assert!(created_user.is_err());
+    assert!(response_status.is_client_error());
+    assert_eq!(StatusCode::UNPROCESSABLE_ENTITY, response_status);
 }

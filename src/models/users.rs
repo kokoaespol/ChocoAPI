@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
+use crate::erro::ErrorMap;
+
 /// A domain user.
 #[derive(Serialize, Deserialize)]
 pub struct User {
@@ -57,7 +59,7 @@ pub struct InsertableUserBuilder {
     username: String,
     full_name: Option<String>,
     profile_pic_id: Option<Uuid>,
-    email_id: Uuid,
+    email_id: Option<Uuid>,
     passwd_hash: String,
 }
 
@@ -68,7 +70,7 @@ impl InsertableUserBuilder {
             username: String::default(),
             full_name: None,
             profile_pic_id: None,
-            email_id: Uuid::default(),
+            email_id: None,
             passwd_hash: String::default(),
         }
     }
@@ -94,7 +96,7 @@ impl InsertableUserBuilder {
 
     #[must_use]
     pub fn with_email_id(mut self, email_id: Uuid) -> Self {
-        self.email_id = email_id;
+        self.email_id = Some(email_id);
         self
     }
 
@@ -105,21 +107,31 @@ impl InsertableUserBuilder {
     }
 
     #[must_use]
-    pub fn build(self) -> Option<InsertableUser> {
-        if self.username.is_empty()
-            || self.passwd_hash.is_empty()
-            || self.email_id == Uuid::default()
-        {
-            None
+    pub fn build(self) -> Result<InsertableUser, ErrorMap<&'static str, &'static str>> {
+        let mut errors = ErrorMap::new();
+
+        if self.username.is_empty() {
+            errors.add_error("username", "Missing field");
+        }
+
+        if self.passwd_hash.is_empty() {
+            errors.add_error("password", "Missing field");
+        }
+
+        if self.email_id.is_none() {
+            errors.add_error("email", "Missing field");
+        }
+
+        if errors.len() != 0 {
+            Err(errors)
         } else {
-            InsertableUser {
+            Ok(InsertableUser {
                 username: self.username,
                 full_name: self.full_name,
                 profile_pic_id: self.profile_pic_id,
-                email_id: self.email_id,
+                email_id: self.email_id.unwrap(),
                 passwd_hash: self.passwd_hash,
-            }
-            .into()
+            })
         }
     }
 }
