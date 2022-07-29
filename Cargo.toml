@@ -17,7 +17,7 @@ name = "chocoapi"
 
 [dependencies]
 # Core dependencies: runtime and HTTP framework
-axum = { version = "0.5.14", features = ["headers"] }
+axum = { version = "0.5.13", features = ["headers", "multipart"] }
 tokio = { version = "1.20.1", features = ["rt-multi-thread", "macros"] }
 
 # State of the art password hashing.
@@ -44,6 +44,7 @@ tracing-bunyan-formatter = "0.3.3"
 tracing-subscriber = { version = "0.3.15", features = ["env-filter"] }
 uuid = { version = "1.1.2", features = ["v4", "serde"] }
 validator = { version = "0.16.0", features = ["derive"] }
+image = "0.24.3"
 
 # Database client
 [dependencies.sqlx]
@@ -65,4 +66,5 @@ reqwest = { version = "0.11.11", default-features = false, features = [
     "json",
     "rustls-tls",
     "cookies",
+    "multipart"
 ] }

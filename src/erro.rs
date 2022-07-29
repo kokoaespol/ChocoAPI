@@ -1,12 +1,77 @@
 // TODO: delete this once constructed an Unauthorized Error
 #![allow(dead_code)]
 
+use std::collections::HashMap;
+use std::hash::Hash;
+use std::ops::Deref;
+
 use axum::{
     http::{header, HeaderValue, StatusCode},
     response::{IntoResponse, Response},
 };
 use http_api_problem::HttpApiProblem;
 use sqlx::error::DatabaseError;
+
+/// A type to be used for listing errors during request processing.
+#[derive(Debug)]
+pub struct ErrorMap<K, V>(HashMap<K, Vec<V>>);
+
+impl<K, V> ErrorMap<K, V>
+where
+    K: Eq + Hash + Clone,
+{
+    pub fn new() -> Self {
+        Self(HashMap::new())
+    }
+
+    /// Add a new error to this error map.
+    pub fn add_error<T, U>(&mut self, key: T, value: U) -> &mut Self
+    where
+        T: Into<K> + Clone,
+        U: Into<V>,
+    {
+        let key = key.into();
+
+        if !self.0.contains_key(&key) {
+            self.0.insert(key.clone(), Vec::new());
+        }
+
+        self.0.get_mut(&key).unwrap().push(value.into());
+        self
+    }
+
+    /// Merge into this error map the provided error map.
+    pub fn merge<T, U>(&mut self, other: ErrorMap<T, U>) -> &mut Self
+    where
+        T: Into<K> + Clone,
+        U: Into<V>,
+    {
+        for (k, v) in other.0 {
+            for err in v {
+                self.add_error(k.clone().into(), err.into());
+            }
+        }
+
+        self
+    }
+}
+
+impl<K, V> Default for ErrorMap<K, V>
+where
+    K: Eq + Hash + Clone,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<K, V> Deref for ErrorMap<K, V> {
+    type Target = HashMap<K, Vec<V>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 // A common error type that can be used throughout the API.
 ///
@@ -28,11 +93,10 @@ pub enum AppError {
     // /// Return `404 Not Found`
     // #[error("request path not found")]
     // NotFound,
+    /// Return `422 Unprocessable Entity`
+    #[error("error in the request body")]
+    UnprocessableEntity(ErrorMap<String, String>),
 
-    // /// Return `422 Unprocessable Entity`
-    // #[error("error in the request body")]
-    // UnprocessableEntity,
-    //
     /// Automatically return `500 Internal Server Error` on a `sqlx::Error`.
     ///
     /// Via the generated `From<sqlx::Error> for Error` impl,
@@ -70,7 +134,7 @@ impl AppError {
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
             // Self::Forbidden => StatusCode::FORBIDDEN,
             // Self::NotFound => StatusCode::NOT_FOUND,
-            // Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Sqlx(_) | Self::Eyre(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -81,7 +145,7 @@ impl IntoResponse for AppError {
         let status = self.status_code();
 
         // TODO: test this error structure
-        let details_7807 = HttpApiProblem::with_title(status)
+        let mut details_7807 = HttpApiProblem::with_title(status)
             // TODO: self hosted page explaining the error
             .type_url(format!("https://httpstatuses.io/{}", status.as_u16()))
             .detail(self.to_string())
@@ -97,8 +161,13 @@ impl IntoResponse for AppError {
                 return hyper_response.into_response();
             }
             // add errors to response
-            // AppError::UnprocessableEntity
-            //
+            AppError::UnprocessableEntity(errors_map) => {
+                errors_map
+                    .iter()
+                    .for_each(|(key, errors)| {
+                        details_7807.set_value(key, errors);
+                    });
+            },
             AppError::Sqlx(ref error) => {
                 tracing::error!(?error, "SQLx error");
             }

@@ -1,9 +1,10 @@
 use crate::{
     configuration::{DatabaseSettings, Settings},
-    routes::health_check,
+    repositories::{EmailRepository, ImageRepository, UserRepository},
+    routes::{health_check, register},
 };
 use axum::{
-    routing::{get, IntoMakeService},
+    routing::{get, post, IntoMakeService},
     Extension, Router, Server,
 };
 use eyre::{Result, WrapErr};
@@ -88,6 +89,9 @@ pub async fn get_connection_pool(configuration: &DatabaseSettings) -> Result<PgP
 fn app(db_pool: PgPool) -> Router {
     Router::new()
         .route("/health_check", get(health_check))
-        .layer(Extension(db_pool))
+        .route("/register", post(register))
+        .layer(Extension(UserRepository::new(db_pool.clone())))
+        .layer(Extension(ImageRepository::new(db_pool.clone())))
+        .layer(Extension(EmailRepository::new(db_pool)))
         .layer(TraceLayer::new_for_http())
 }

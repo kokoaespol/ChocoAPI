@@ -1,3 +1,160 @@
 {
-  "db": "PostgreSQL"
+  "db": "PostgreSQL",
+  "16560485da6c51c6ada71136d891ab37999a5ef1c5dff51bcef69813596e68fb": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int2"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT id FROM image_mime_types WHERE mime = $1"
+  },
+  "2310e1d582709d82e79656b4de115d61b0858464a085de04806c33b00d1eeba7": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "full_name",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "profile_pic_id",
+          "ordinal": 3,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "email_id",
+          "ordinal": 4,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "passwd_hash",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "active",
+          "ordinal": 6,
+          "type_info": "Bool"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 7,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 8,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Uuid",
+          "Uuid",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO users (username, full_name, profile_pic_id, email_id, passwd_hash)\n            VALUES ($1, $2, $3, $4, $5)\n            RETURNING *\n            "
+  },
+  "56cfccf69a60d5de05e64a639a9b8460d93ef871c0f18095b1b2fec547faefd8": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int2"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO image_mime_types (mime)\n            VALUES ($1)\n            RETURNING id\n            "
+  },
+  "64bfe88e4aa427b77ebc822c6c64b34d701b1f91d617502a9d82ed402b980f4c": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Int4",
+          "Int4",
+          "Text",
+          "Int4",
+          "Int2"
+        ]
+      }
+    },
+    "query": "\n                     INSERT INTO image_files (id, width_px, height_px, file_path, size_bytes, mime_id)\n                     VALUES ($1, $2, $3, $4, $5, $6)\n                     RETURNING id\n                     "
+  },
+  "d1aa4ec9e1f0cafbc3cc1686e3233de42820d11df1c69d534d385fdebdbffd7a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO emails (email)\n            VALUES ($1)\n            RETURNING id\n            "
+  }
 }
