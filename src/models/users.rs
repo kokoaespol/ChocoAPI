@@ -1,4 +1,3 @@
-use axum::response::{IntoResponse, Response};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use uuid::Uuid;
@@ -15,12 +14,6 @@ pub struct User {
     pub active: bool,
     pub created_at: OffsetDateTime,
     pub updated_at: OffsetDateTime,
-}
-
-impl IntoResponse for User {
-    fn into_response(self) -> Response {
-        serde_json::to_string(&self).unwrap().into_response()
-    }
 }
 
 /// Represents a user to be inserted in the database.
@@ -131,7 +124,6 @@ impl InsertableUserBuilder {
     }
 }
 
-// Clippy me obligó a hacer esto
 impl Default for InsertableUserBuilder {
     fn default() -> Self {
         Self::new()

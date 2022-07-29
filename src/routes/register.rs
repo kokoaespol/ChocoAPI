@@ -1,4 +1,8 @@
-use axum::{extract::Multipart, http::StatusCode, Extension};
+use axum::{
+    extract::{Json, Multipart},
+    http::StatusCode,
+    Extension,
+};
 use eyre::{Context, ContextCompat};
 use tracing::warn;
 
@@ -14,7 +18,7 @@ pub async fn register(
     Extension(user_repository): Extension<UserRepository>,
     Extension(email_repository): Extension<EmailRepository>,
     Extension(image_repository): Extension<ImageRepository>,
-) -> Result<(StatusCode, User), AppError> {
+) -> Result<(StatusCode, Json<User>), AppError> {
     let mut builder = InsertableUserBuilder::new();
 
     while let Some(field) = body
@@ -75,7 +79,7 @@ pub async fn register(
     if let Some(insertable_user) = builder.build() {
         // TODO: We might want to return CONFLICT here (though it might pose a security risk).
         let user = user_repository.create_user(insertable_user).await?;
-        Ok((StatusCode::CREATED, user))
+        Ok((StatusCode::CREATED, user.into()))
     } else {
         Err(AppError::UnprocessableEntity)
     }
