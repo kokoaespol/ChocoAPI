@@ -106,7 +106,9 @@ impl InsertableUserBuilder {
         self
     }
 
-    #[must_use]
+    /// Build a new `InsertableUser` from this `InsertableUserBuilder`.
+    /// # Panics
+    /// - never
     pub fn build(self) -> Result<InsertableUser, ErrorMap<&'static str, &'static str>> {
         let mut errors = ErrorMap::new();
 
@@ -122,9 +124,7 @@ impl InsertableUserBuilder {
             errors.add_error("email", "Missing field");
         }
 
-        if errors.len() != 0 {
-            Err(errors)
-        } else {
+        if errors.len() == 0 {
             Ok(InsertableUser {
                 username: self.username,
                 full_name: self.full_name,
@@ -132,6 +132,8 @@ impl InsertableUserBuilder {
                 email_id: self.email_id.unwrap(),
                 passwd_hash: self.passwd_hash,
             })
+        } else {
+            Err(errors)
         }
     }
 }

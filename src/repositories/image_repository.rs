@@ -3,7 +3,7 @@ use std::io::Cursor;
 use eyre::Context;
 use image::io::Reader as ImageReader;
 use sqlx::postgres::PgPool;
-use std::path::Path;
+use std::path::PathBuf;
 use uuid::Uuid;
 
 use crate::erro::AppError;
@@ -46,7 +46,9 @@ impl ImageRepository {
         let img_size: i32 = bytes.len().try_into().unwrap();
 
         // TODO: Check that the directory exists and all that.
-        let file_path = Path::new("image_uuid").join(format!("image_file_{image_id}"));
+        let file_path: PathBuf = ["image_uuid", &format!("image_file_{image_id}")]
+            .iter()
+            .collect();
 
         // Try to fetch an existing mime_type id or create a new one if it does not
         // already exist.

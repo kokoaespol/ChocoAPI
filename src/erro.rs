@@ -30,7 +30,7 @@ where
         T: Into<K> + Clone,
         U: Into<V>,
     {
-        let key = key.clone().into();
+        let key = key.into();
 
         if !self.0.contains_key(&key) {
             self.0.insert(key.clone(), Vec::new());
@@ -46,12 +46,22 @@ where
         T: Into<K> + Clone,
         U: Into<V>,
     {
-        for (k, v) in other.0.into_iter() {
+        for (k, v) in other.0 {
             for err in v {
                 self.add_error(k.clone().into(), err.into());
             }
         }
+
         self
+    }
+}
+
+impl<K, V> Default for ErrorMap<K, V>
+where
+    K: Eq + Hash + Clone,
+{
+    fn default() -> Self {
+        Self::new()
     }
 }
 
